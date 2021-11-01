@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+const args = require('./args');
+
+if (args.debug) {
+  console.log(args)
+}
 async function quickstart() {
   // Imports the Google Cloud client library
   const vision = require('@google-cloud/vision');
@@ -7,9 +12,12 @@ async function quickstart() {
   const client = new vision.ImageAnnotatorClient();
 
   // Performs label detection on the image file
-  const [result] = await client.labelDetection('./resources/H2014.1764__side_1_detail.jpg');
+  const [result] = await client.labelDetection(args._[0]);
   const labels = result.labelAnnotations;
   console.log('Labels:');
   labels.forEach(label => console.log(label.description));
 }
-quickstart();
+
+if (args._) {
+  quickstart();
+}
