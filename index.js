@@ -16,7 +16,9 @@ if (args.debug) {
 (async () => {
   try {
     const files = fs.readdirSync(args.path);
-    console.log(files);
+    if (args.debug) {
+      console.log(files);
+    }
 
     const vision = require('@google-cloud/vision');
     const client = new vision.ImageAnnotatorClient();
@@ -25,21 +27,23 @@ if (args.debug) {
       let labels = {};
       if (imageTypes.includes(path.extname(file))) {
         if (!args.force && files.includes(file + ".json")) {
-          console.log("Already processed: " + file);
-          let rawdata = fs.readFileSync(path.join(args.path, file));
+          console.log(file);
+          let rawdata = fs.readFileSync(path.join(args.path, file) + ".json");
           labels = await JSON.parse(rawdata);
         } else {
           const [result] = await client.labelDetection(path.join(args.path, file));
           labels = result.labelAnnotations;
-          console.log(path.join(args.path, file) + ' Labels:');
+          console.log(path.join(args.path, file) +":");
           fs.writeFileSync(path.join(args.path, file) + '.json', JSON.stringify(labels, null, 2),);
           // labels.forEach(label => console.log(label.description));
         }
-        labels.forEach(label => console.log(label.description));
+        labels.forEach(label => process.stdout.write(label.description + ","));
+        console.log('\n--')
       } else {
-        console.log("Skipping: " + file + "extension " + path.extname(file));
+        // console.log("Skipping: " + file + "extension " + path.extname(file));
       }
     }
-  } catch {
+  } catch (error) {
+    console.log(error);
   }
 })();
