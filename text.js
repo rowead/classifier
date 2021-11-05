@@ -25,7 +25,9 @@ const csv = require('@fast-csv/parse');
             content: row.Description,
             type: 'PLAIN_TEXT',
           };
-          entities = await client.analyzeEntities({document});
+          results = await client.analyzeEntities({document});
+          // @TODO: add variable existence check
+          entities = results[0];
           fs.writeFileSync(`./dwyer-head.csv-${row.id}.json`, JSON.stringify(entities, null, 2),);
           console.log(`loaded ${row.id} from API`);
         }
