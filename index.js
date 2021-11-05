@@ -18,12 +18,15 @@ if (args.debug) {
   try {
     let rows = [];
     const files = fs.readdirSync(args.path);
+
     if (args.debug) {
       console.log(files);
     }
 
     const vision = require('@google-cloud/vision');
-    const client = new vision.ImageAnnotatorClient();
+    const client = new vision.ImageAnnotatorClient({
+      keyFilename: path.resolve(path.join(__dirname, 'keys', args.key))
+    });
 
     for (const file of files) {
       let labels = {};
