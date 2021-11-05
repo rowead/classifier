@@ -8,6 +8,7 @@ exports.desc = 'Classify images within a folder'
 exports.builder = {
   path: {
     description: 'Path to folder to process',
+    demandOption: 'You must specify a path to a folder containing images',
     type: 'string'
   }
 }
