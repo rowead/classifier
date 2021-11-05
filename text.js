@@ -16,7 +16,7 @@ const csv = require('@fast-csv/parse');
       .on('error', error => console.error(error))
       .on('data', async row => {
         csvStream.pause();
-        if (!args.force) {
+        if (args.force !== true && fs.existsSync(`./dwyer-head.csv-${row.id}.json`)) {
           let rawdata = fs.readFileSync(`./dwyer-head.csv-${row.id}.json`);
           entities = JSON.parse(rawdata);
           console.log(`loaded ${row.id} from cache`);

@@ -31,7 +31,7 @@ if (args.debug) {
     for (const file of files) {
       let labels = {};
       if (imageTypes.includes(path.extname(file))) {
-        if (!args.force && files.includes(file + ".json")) {
+        if (args.force !== true && files.includes(file + ".json")) {
           console.log(file);
           let rawdata = fs.readFileSync(path.join(args.path, file) + ".json");
           labels = await JSON.parse(rawdata);
