@@ -12,6 +12,10 @@ const argv = require('yargs')
   type: 'boolean',
   default: false
 })
+.option('key', {
+  description: 'Name of the google API key file placed in the keys folder. See https://cloud.google.com/docs/authentication/getting-started to get the JSON key file.',
+  default: 'google.json',
+})
 .option('path', {
   describe: 'Path to folder to process',
   type: 'string'

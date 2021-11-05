@@ -8,7 +8,9 @@ const csv = require('@fast-csv/parse');
 (async () => {
   try {
     // Creates a client
-    const client = new language.LanguageServiceClient();
+    const client = new language.LanguageServiceClient({
+      keyFilename: path.resolve(path.join(__dirname, 'keys', args.key))
+    });
     let entities = [];
     let csvStream = csv.parseFile('dwyer-head.csv', { headers: true })
       .on('error', error => console.error(error))
