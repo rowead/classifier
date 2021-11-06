@@ -64,12 +64,14 @@ exports.handler = function (argv) {
           if (argv.force !== true && fs.existsSync(`${argv.csv}-${row[argv.idColumn]}.json`)) {
             let rawdata = fs.readFileSync(`${argv.csv}-${row[argv.idColumn]}.json`);
             entities = JSON.parse(rawdata);
-            console.log(`loaded ${row[argv.idColumn]} from cache`);
+            if (argv.verbose) {
+              console.log(`loaded ${row[argv.idColumn]} from cache`);
+            }
           } else {
+            // Add extra newline as hints for google.
             let content = argv.addNewlines ? row[argv.classifyColumn].replace(/\n/g, '\n\n') : row[argv.classifyColumn];
             const request = {
               document: {
-                // Add extra newline as hints for google.
                 content: content,
                 type: 'PLAIN_TEXT'
               },
@@ -85,7 +87,9 @@ exports.handler = function (argv) {
             // @TODO: add variable existence check
             entities = results[0];
             fs.writeFileSync(`${argv.csv}-${row[argv.idColumn]}.json`, JSON.stringify(entities, null, 2),);
-            console.log(`loaded ${row[argv.idColumn]} from API`);
+            if (argv.verbose) {
+              console.log(`loaded ${row[argv.idColumn]} from API`);
+            }
           }
           await entities.entities.forEach(entity => {
             if (!mlHeaders.includes('ML_' + entity.type)) {
@@ -101,6 +105,7 @@ exports.handler = function (argv) {
             }
           });
           rows.push(row);
+          console.log(`Processed Row ${row[argv.idColumn]}.`);
           }
         )
         .whenEnd()
@@ -110,6 +115,7 @@ exports.handler = function (argv) {
           })
           .on('error', err => console.error(err))
           .on('finish', () => console.log('Done writing.'));
+          console.log('Writing output to: ' + path.resolve('./' + path.basename(argv.csv,path.extname(argv.csv)) + '-enriched.csv'));
         });
     } catch (error) {
       console.log(error);

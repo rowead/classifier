@@ -40,13 +40,17 @@ exports.handler = async function (argv) {
       let labels = {};
       if (imageTypes.includes(path.extname(file))) {
         if (argv.force !== true && files.includes(file + ".json")) {
-          console.log(file);
           let rawdata = fs.readFileSync(path.join(argv.path, file) + ".json");
           labels = await JSON.parse(rawdata);
+          if (argv.verbose) {
+            console.log(`${file}:`.padEnd(50) + `Loading labels from cache`);
+          }
         } else {
           const [result] = await client.labelDetection(path.join(argv.path, file));
           labels = result.labelAnnotations;
-          console.log(path.join(argv.path, file) +":");
+          if (argv.verbose) {
+            console.log(path.join(argv.path, file).padEnd(50) + ": Loading labels from API");
+          }
           fs.writeFileSync(path.join(argv.path, file) + '.json', JSON.stringify(labels, null, 2),);
         }
         let row = {
@@ -56,11 +60,16 @@ exports.handler = async function (argv) {
         }
         labels.forEach(label => row.labels.push(label.description));
 
-        labels.forEach(label => process.stdout.write(label.description + ","));
-        console.log('\n--')
+        if (argv.debug) {
+          labels.forEach(label => process.stdout.write(label.description + ","));
+          console.log('\n--')
+        }
+        console.log(`${file}:`.padEnd(50) + `Processed`);
         rows.push(row);
       } else {
-        // console.log("Skipping: " + file + "extension " + path.extname(file));
+        if (argv.verbose) {
+          console.log(`${file}`.padEnd(50) + `Skipped`);
+        }
       }
     }
     writeToPath(path.resolve(argv.path, 'labels.csv'), rows, {
@@ -68,6 +77,7 @@ exports.handler = async function (argv) {
     })
     .on('error', err => console.error(err))
     .on('finish', () => console.log('Done writing.'));
+    console.log('Writing output to: ' + path.resolve(argv.path, 'labels.csv'));
   } catch (error) {
     console.log(error);
   }
