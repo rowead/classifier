@@ -56,6 +56,9 @@ const mlHeaders = mlFields.map(value => value = mlHeaderPrefix + value);
 
 exports.handler = function (argv) {
   (async () => {
+    if (argv.debug) {
+      console.log(argv);
+    }
     try {
       // Creates a client
       const client = new language.LanguageServiceClient({
@@ -65,6 +68,7 @@ exports.handler = function (argv) {
       let csvStream = {};
       DataStream.from(csvStream = csv.parseFile(argv.csv, { headers: true }))
         .setOptions({maxParallel: 1})
+        .filter( row => ((row[argv.idColumn]) && (row[argv.classifyColumn])))
         .each( async row => {
           let entities = [];
           if (argv.force !== true && fs.existsSync(`${argv.csv}-${row[argv.idColumn]}.json`)) {
