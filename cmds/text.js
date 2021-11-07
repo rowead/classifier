@@ -8,6 +8,22 @@ const {writeToPath} = require("@fast-csv/format");
 exports.command = 'text'
 exports.desc = 'Classify text'
 exports.builder = {
+  'add-newlines': {
+    description: 'Add extra newline to text. This can help break up the text and hint to google that they are separate sentences.',
+    type: 'boolean',
+    default: true
+  },
+  'cache-folder': {
+    alias: 'cf',
+    description: 'Cache Folder path',
+    hidden: true,
+    default: './.cache'
+  },
+  'classify-column': {
+    alias: 'cc',
+    description: 'Column containing the text to classify',
+    default: 'Description'
+  },
   csv: {
     description: 'Path to csv file',
     demandOption: 'You must specify a file'
@@ -16,16 +32,6 @@ exports.builder = {
     alias: 'ic',
     description: 'Column for the unique ID in the csv (Normally Primary Key)',
     default: 'id'
-  },
-  'classify-column': {
-    alias: 'cc',
-    description: 'Column containing the text to classify',
-    default: 'Description'
-  },
-  'add-newlines': {
-    description: 'Add extra newline to text. This can help break up the text and hint to google that they are separate sentences.',
-    type: 'boolean',
-    default: true
   }
 }
 
