@@ -7,7 +7,7 @@ const {readCache, writeCache} = require('../utils.js');
 const {writeToPath} = require("@fast-csv/format");
 
 exports.command = 'text'
-exports.desc = 'Classify text'
+exports.desc = 'Classify text field in a CSV file'
 exports.builder = {
   'add-newlines': {
     description: 'Add extra newline to text. This can help break up the text and hint to google that they are separate sentences.',
