@@ -2,7 +2,8 @@ const csv = require('@fast-csv/parse');
 const fs = require("fs");
 const language = require('@google-cloud/language');
 const path = require("path");
-const { DataStream } = require("scramjet");
+const {DataStream} = require("scramjet");
+const {readCache, writeCache} = require('../utils.js');
 const {writeToPath} = require("@fast-csv/format");
 
 exports.command = 'text'
@@ -65,9 +66,9 @@ exports.handler = function (argv) {
         .filter( row => ((row[argv.idColumn]) && (row[argv.classifyColumn])))
         .each( async row => {
           let entities = [];
-          if (argv.force !== true && fs.existsSync(`${argv.csv}-${row[argv.idColumn]}.json`)) {
-            let rawdata = fs.readFileSync(`${argv.csv}-${row[argv.idColumn]}.json`);
-            entities = JSON.parse(rawdata);
+          let cached = false;
+          if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.csv, row[argv.idColumn]))) {
+            entities = JSON.parse(cached);
             if (argv.verbose) {
               console.log(`loaded ${row[argv.idColumn]} from cache`);
             }
@@ -90,7 +91,7 @@ exports.handler = function (argv) {
             let results = await client.annotateText(request);
             // @TODO: add variable existence check
             entities = results[0];
-            fs.writeFileSync(`${argv.csv}-${row[argv.idColumn]}.json`, JSON.stringify(entities, null, 2),);
+            await writeCache(argv.cacheFolder, argv.csv, row[argv.idColumn], entities);
             if (argv.verbose) {
               console.log(`loaded ${row[argv.idColumn]} from API`);
             }
@@ -114,7 +115,7 @@ exports.handler = function (argv) {
         )
         .whenEnd()
         .then(() => {
-          writeToPath(path.resolve('./' + path.basename(argv.csv,path.extname(argv.csv)) + '-enriched.csv'), rows, {
+          writeToPath(path.resolve(path.basename(argv.csv,path.extname(argv.csv)) + '-enriched.csv'), rows, {
             headers: csvStream.headerTransformer.headers.concat(mlHeaders)
           })
           .on('error', err => console.error(err))

@@ -1,7 +1,8 @@
 const fs = require('fs');
 let path = require('path');
-const { writeToPath } = require('@fast-csv/format');
+const {writeToPath} = require('@fast-csv/format');
 const vision = require('@google-cloud/vision');
+const {readCache, writeCache} = require("../utils.js");
 
 exports.command = 'images'
 exports.desc = 'Classify images within a folder'
@@ -39,9 +40,9 @@ exports.handler = async function (argv) {
     for (const file of files) {
       let labels = {};
       if (imageTypes.includes(path.extname(file))) {
-        if (argv.force !== true && files.includes(file + ".json")) {
-          let rawdata = fs.readFileSync(path.join(argv.path, file) + ".json");
-          labels = await JSON.parse(rawdata);
+        let cached = false;
+        if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.path, file, false))) {
+          labels = await JSON.parse(cached);
           if (argv.verbose) {
             console.log(`${file}:`.padEnd(50) + `Loading labels from cache`);
           }
@@ -51,7 +52,7 @@ exports.handler = async function (argv) {
           if (argv.verbose) {
             console.log(path.join(argv.path, file).padEnd(50) + ": Loading labels from API");
           }
-          fs.writeFileSync(path.join(argv.path, file) + '.json', JSON.stringify(labels, null, 2),);
+          await writeCache(argv.cacheFolder, argv.path, file, labels, false);
         }
         let row = {
           file: file,
