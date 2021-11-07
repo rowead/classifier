@@ -60,69 +60,79 @@ exports.handler = function (argv) {
         keyFilename: path.resolve(path.join(__dirname, '../keys', argv.key))
       });
       let rows = [];
+      let ids = [];
       let csvStream = {};
-      DataStream.from(csvStream = csv.parseFile(argv.csv, { headers: true }))
-        .setOptions({maxParallel: 1})
-        .filter( row => ((row[argv.idColumn]) && (row[argv.classifyColumn])))
-        .each( async row => {
-          let entities = [];
-          let cached = false;
-          if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.csv, row[argv.idColumn]))) {
-            entities = JSON.parse(cached);
-            if (argv.verbose) {
-              console.log(`loaded ${row[argv.idColumn]} from cache`);
-            }
-          } else {
-            // Add extra newline as hints for google.
-            let content = argv.addNewlines ? row[argv.classifyColumn].replace(/\n/g, '\n\n') : row[argv.classifyColumn];
-            const request = {
-              document: {
-                content: content,
-                type: 'PLAIN_TEXT'
-              },
-              features: {
-                extractSyntax: true,
-                extractEntities: true,
-                extractDocumentSentiment: true,
-                extractEntitySentiment: true
-                // classifyText: true
-              }
-            };
-            let results = await client.annotateText(request);
-            // @TODO: add variable existence check
-            entities = results[0];
-            await writeCache(argv.cacheFolder, argv.csv, row[argv.idColumn], entities);
-            if (argv.verbose) {
-              console.log(`loaded ${row[argv.idColumn]} from API`);
-            }
+      DataStream.from(csvStream = csv.parseFile(argv.csv, {headers: true}))
+      .setOptions({maxParallel: 1})
+      .filter(row => ((row[argv.idColumn]) && (row[argv.classifyColumn])))
+      .each(async row => {
+        if (ids.includes(row[argv.idColumn])) {
+          console.error(`${row[argv.idColumn]}`.padEnd(50) + 'Duplicate found');
+          return false;
+        }
+        let entities = [];
+        let cached = false;
+        if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.csv, row[argv.idColumn]))) {
+          entities = JSON.parse(cached);
+          if (argv.verbose) {
+            console.log(`${row[argv.idColumn]}`.padEnd(50) + `Loaded from cache`);
           }
-          await entities.entities.forEach(entity => {
-            if (!mlHeaders.includes('ML_' + entity.type)) {
-              mlHeaders.push('ML_' + entity.type);
+        }
+        else {
+          // Add extra newline as hints for google.
+          let content = argv.addNewlines ? row[argv.classifyColumn].replace(/\n/g, '\n\n') : row[argv.classifyColumn];
+          const request = {
+            document: {
+              content: content,
+              type: 'PLAIN_TEXT',
+              language: 'en'
+            },
+            features: {
+              extractSyntax: true,
+              extractEntities: true,
+              extractDocumentSentiment: true,
+              extractEntitySentiment: true
+              // classifyText: true
             }
-            if (!(Array.isArray(row['ML_' + entity.type]) && row['ML_' + entity.type].length)) {
-              row['ML_' + entity.type] = [];
-            }
-            if (entity.metadata && entity.metadata.wikipedia_url) {
-              row['ML_' + entity.type].push(entity.name + ' | ' + entity.metadata.wikipedia_url);
-            } else {
-              row['ML_' + entity.type].push(entity.name);
-            }
-          });
-          rows.push(row);
-          console.log(`Processed Row ${row[argv.idColumn]}.`);
+          };
+          let results = await client.annotateText(request);
+          // @TODO: add variable existence check
+          entities = results[0];
+          await writeCache(argv.cacheFolder, argv.csv, row[argv.idColumn], entities);
+          if (argv.verbose) {
+            console.log(`${row[argv.idColumn]}`.padEnd(50) +  `Loaded from API`);
           }
-        )
-        .whenEnd()
-        .then(() => {
-          writeToPath(path.resolve(path.basename(argv.csv,path.extname(argv.csv)) + '-enriched.csv'), rows, {
-            headers: csvStream.headerTransformer.headers.concat(mlHeaders)
-          })
-          .on('error', err => console.error(err))
-          .on('finish', () => console.log('Done writing.'));
-          console.log('Writing output to: ' + path.resolve('./' + path.basename(argv.csv,path.extname(argv.csv)) + '-enriched.csv'));
+        }
+        await entities.entities.forEach(entity => {
+          if (!mlHeaders.includes('ML_' + entity.type)) {
+            mlHeaders.push('ML_' + entity.type);
+          }
+          if (!(row['ML_' + entity.type])) {
+            row['ML_' + entity.type] = '';
+          }
+          if (entity.metadata && entity.metadata.wikipedia_url) {
+            row['ML_' + entity.type] += (row['ML_' + entity.type] ? "\t" : '') + entity.name + '|' + entity.metadata.wikipedia_url;
+          }
+          else {
+            row['ML_' + entity.type] += (row['ML_' + entity.type] ? "\t" : '') + entity.name;
+          }
         });
-    } catch (error) {
+        rows.push(row);
+        ids.push(row[argv.idColumn]);
+        console.log(`${row[argv.idColumn]}`.padEnd(50) + 'Processed');
+      })
+      .whenEnd()
+      .then(() => {
+        writeToPath(path.resolve(path.basename(argv.csv, path.extname(argv.csv)) + '-enriched.csv'), rows, {
+          headers: csvStream.headerTransformer.headers.concat(mlHeaders),
+          delimiter: '\t'
+        })
+        .on('error', err => console.error(err))
+        .on('finish', () => console.log('Done writing.'));
+        console.log('Writing output to: ' + path.resolve('./' + path.basename(argv.csv, path.extname(argv.csv)) + '-enriched.csv'));
+      });
+    }
+    catch (error) {
       console.log(error);
     }
   })();
