@@ -6,6 +6,12 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
   .demandCommand(1, 'You need at least one command before moving on')
   .env('WAM_IMAGE_CLASSIFIER')
 // Global options for all scripts
+  .option('cache-folder', {
+    alias: 'cf',
+    description: 'Cache Folder path',
+    hidden: true,
+    default: './.cache'
+  })
   .option('debug', {
     alias: 'd',
     description: 'Output debug information to stdout',

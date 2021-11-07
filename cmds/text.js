@@ -13,12 +13,6 @@ exports.builder = {
     type: 'boolean',
     default: true
   },
-  'cache-folder': {
-    alias: 'cf',
-    description: 'Cache Folder path',
-    hidden: true,
-    default: './.cache'
-  },
   'classify-column': {
     alias: 'cc',
     description: 'Column containing the text to classify',
