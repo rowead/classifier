@@ -86,6 +86,7 @@ exports.handler = function (argv) {
               content: content,
               type: 'PLAIN_TEXT',
             },
+            // @TODO: turn into command options
             features: {
               extractSyntax: true,
               extractEntities: true,
@@ -113,10 +114,10 @@ exports.handler = function (argv) {
             row['ML_' + entity.type] = '';
           }
           if (entity.metadata && entity.metadata.wikipedia_url) {
-            row['ML_' + entity.type] += (row['ML_' + entity.type] ? "\t" : '') + entity.name + '|' + entity.metadata.wikipedia_url;
+            row['ML_' + entity.type] += (row['ML_' + entity.type] ? argv.delimiter : '') + entity.name + '|' + entity.metadata.wikipedia_url;
           }
           else {
-            row['ML_' + entity.type] += (row['ML_' + entity.type] ? "\t" : '') + entity.name;
+            row['ML_' + entity.type] += (row['ML_' + entity.type] ? argv.delimiter : '') + entity.name;
           }
         });
         rows.push(row);
@@ -127,7 +128,7 @@ exports.handler = function (argv) {
       .then(() => {
         writeToPath(path.resolve(path.basename(argv.csv, path.extname(argv.csv)) + '-enriched.csv'), rows, {
           headers: csvStream.headerTransformer.headers.concat(mlHeaders),
-          delimiter: '\t'
+          delimiter: argv.delimiter
         })
         .on('error', err => console.error(err))
         .on('finish', () => console.log('Done writing.'));

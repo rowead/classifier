@@ -57,9 +57,9 @@ exports.handler = async function (argv) {
         let row = {
           file: file,
           path: argv.path,
-          labels: []
+          ML_LABELS: ''
         }
-        labels.forEach(label => row.labels.push(label.description));
+        labels.forEach(label => row.ML_LABELS += (row.ML_LABELS ? argv.delimiter : '') + label.description);
 
         if (argv.debug) {
           labels.forEach(label => process.stdout.write(label.description + ","));
@@ -74,7 +74,8 @@ exports.handler = async function (argv) {
       }
     }
     writeToPath(path.resolve(argv.path, 'labels.csv'), rows, {
-      headers: true
+      headers: true,
+      delimiter: argv.delimiter
     })
     .on('error', err => console.error(err))
     .on('finish', () => console.log('Done writing.'));
