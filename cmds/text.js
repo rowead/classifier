@@ -88,10 +88,10 @@ exports.handler = function (argv) {
             },
             // @TODO: turn into command options
             features: {
-              extractSyntax: true,
+              // extractSyntax: true,
               extractEntities: true,
-              extractDocumentSentiment: true,
-              extractEntitySentiment: true
+              // extractDocumentSentiment: true,
+              // extractEntitySentiment: true
               // classifyText: true
             }
           };
