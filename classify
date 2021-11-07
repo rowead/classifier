@@ -30,7 +30,26 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
   })
   .option('language', {
     alias: 'lang',
-    description: 'Set the language to use for classification',
+    description: 'Set the language to use for classification. See https://cloud.google.com/natural-language/docs/languages',
+    choices: [
+      'auto',
+      'ar',
+      'zh',
+      'zh-Hant',
+      'nl',
+      'en',
+      'fr',
+      'de',
+      'id',
+      'it',
+      'ja',
+      'ko',
+      'pt',
+      'es',
+      'th',
+      'tr',
+      'vi'
+    ],
     default: 'en'
   })
   .option('verbose', {
@@ -42,3 +61,5 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
   .wrap(null)
   .help()
   .argv
+
+
