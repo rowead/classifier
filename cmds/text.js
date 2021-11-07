@@ -81,11 +81,10 @@ exports.handler = function (argv) {
         else {
           // Add extra newline as hints for google.
           let content = argv.addNewlines ? row[argv.classifyColumn].replace(/\n/g, '\n\n') : row[argv.classifyColumn];
-          const request = {
+          let request = {
             document: {
               content: content,
               type: 'PLAIN_TEXT',
-              language: 'en'
             },
             features: {
               extractSyntax: true,
@@ -95,6 +94,9 @@ exports.handler = function (argv) {
               // classifyText: true
             }
           };
+          if (argv.language !== 'auto') {
+            request.document.language = argv.language;
+          }
           let results = await client.annotateText(request);
           // @TODO: add variable existence check
           entities = results[0];
