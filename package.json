@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@azure/cognitiveservices-computervision": "^8.1.0",
+    "@azure/ms-rest-js": "^2.6.0",
     "@fast-csv/format": "^4.3.5",
     "@fast-csv/parse": "^4.3.6",
     "@google-cloud/language": "^4.3.1",
