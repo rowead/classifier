@@ -16,7 +16,7 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
     cachedImageExists = false;
   }
 
-  if (force || !cachedImageExists) {
+  if (!force || cachedImageExists) {
     // use cache
     return path.join(cacheDetails.cacheFilePath, fileName);
   }
