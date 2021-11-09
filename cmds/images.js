@@ -35,7 +35,9 @@ exports.handler = async function (argv) {
   const imageTypes = [
     '.jpeg',
     '.jpg',
-    '.png'
+    '.png',
+    '.tif',
+    '.tiff'
   ];
 
   if (argv.debug) {
