@@ -5,11 +5,15 @@ const sharp = require('sharp');
 
 async function cacheImage(cache,cachePath, fileName, force = false) {
   const cacheDetails = getCacheDetails(cache, cachePath, fileName, false);
-  
-  //console.log(cacheDetails);
+  const cachedImagePath = path.join(
+    cacheDetails.cacheFilePath,
+    path.basename(fileName, path.extname(fileName))
+  ) + '.jpg';
+
   let cachedImageExists = false;
+
   try {
-    fs.accessSync(path.join(cacheDetails.cacheFilePath, fileName));
+    fs.accessSync(cachedImagePath);
     cachedImageExists = true;
   }
   catch (error) {
@@ -18,17 +22,16 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
 
   if (!force && cachedImageExists) {
     // use cache
-    return path.join(cacheDetails.cacheFilePath, fileName);
+    return cachedImagePath;
   }
   else {
     try {
       let metadata = await sharp(path.join(cachePath, fileName)).metadata();
-      // @TODO: write jpg with correct filename
       await sharp(path.join(cachePath, fileName))
         .resize({width: 640, height: 480, fit: 'inside'})
-        .toFormat('jpeg')
-        .toFile(path.join(cacheDetails.cacheFilePath, fileName));
-      return path.join(cacheDetails.cacheFilePath, fileName);
+        .jpeg({quality: 90,})
+        .toFile(cachedImagePath);
+      return cachedImagePath;
     }
     catch (error) {
       process.exit(1);
@@ -48,6 +51,7 @@ function getCacheDetails(cache, cachePath, key, optimize) {
   const _keyPath = path.dirname(_keyFullPath);
   cacheDetails.keyFilename = path.basename(_keyFullPath) + '.json';
   cacheDetails.cacheFilePath = path.resolve(__dirname, cache, _cachePath, path.join(_keyPath));
+  cacheDetails.cacheFullPath = path.join(cacheDetails.cacheFilePath, cacheDetails.keyFilename);
   
   return cacheDetails;
 }
@@ -55,10 +59,10 @@ function getCacheDetails(cache, cachePath, key, optimize) {
 async function readCache(cache, cachePath, key, optimize = true) {
   const cacheDetails = getCacheDetails(cache, cachePath, key, optimize);
   try {
-    return fs.readFileSync(path.join(cacheDetails.cacheFilePath, cacheDetails.keyFilename));
+    return fs.readFileSync(cacheDetails.cacheFullPath);
   }
   catch (error) {
-    console.error(`Could not read cache file ${path.join(cacheDetails.cacheFilePath, cacheDetails.keyFilename)}`);
+    console.error(`Could not read cache file ${cacheDetails.cacheFullPath}`);
   }
   return false;
 }
@@ -68,7 +72,7 @@ async function writeCache(cache, cachePath, key, payload, optimize = true, prett
   try {
     fs.mkdirSync(cacheDetails.cacheFilePath,{recursive: true});
     fs.writeFileSync(
-      path.join(cacheDetails.cacheFilePath, cacheDetails.keyFilename),
+      cacheDetails.cacheFullPath,
       pretty ? JSON.stringify(payload, null, 2) : payload
     );
   }
