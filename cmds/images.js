@@ -6,6 +6,7 @@ const {readCache, writeCache} = require("../utils.js");
 const vision = require('@google-cloud/vision');
 const ComputerVisionClient = require('@azure/cognitiveservices-computervision').ComputerVisionClient;
 const ApiKeyCredentials = require('@azure/ms-rest-js').ApiKeyCredentials;
+const sharp = require('sharp');
 
 exports.command = 'images'
 exports.desc = 'Classify images within a folder'
@@ -70,6 +71,8 @@ exports.handler = async function (argv) {
       let results = {};
       if (imageTypes.includes(path.extname(file))) {
         let cached = false;
+        let metadata = await sharp(path.join(argv.path, file)).metadata();
+        console.log(metadata);
         if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.path, file + '-' + argv.vendor, false))) {
           results = await JSON.parse(cached);
           if (argv.verbose) {
