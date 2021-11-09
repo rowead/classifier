@@ -7,8 +7,8 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
   const cacheDetails = getCacheDetails(cache, cachePath, fileName, false);
   const cachedImagePath = path.join(
     cacheDetails.cacheFilePath,
-    path.basename(fileName, path.extname(fileName))
-  ) + '.jpg';
+    cleanPath(fileName) + '.jpg'
+  );
 
   let cachedImageExists = false;
 
