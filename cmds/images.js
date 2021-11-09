@@ -105,13 +105,13 @@ exports.handler = async function (argv) {
           results.tags.forEach(label => row.ML_LABELS += (row.ML_LABELS ? argv.delimiter : '') + label);
           if (argv.verbose) {
             console.log(`\tCaption: ${results.captions[0].text} (${results.captions[0].confidence.toFixed(2)} confidence)`);
-            console.log(`\tLabels: ${row.ML_LABELS}`);
+            console.log(`\tLabels: ${row.ML_LABELS.replaceAll(argv.delimiter, ', ')}`);
           }
         }
         else {
           results.labelAnnotations.forEach(label => row.ML_LABELS += (row.ML_LABELS ? argv.delimiter : '') + label.description);
           if (argv.verbose) {
-            console.log(`\tLabels: ${row.ML_LABELS.replaceAll('\t', ',')}`);
+            console.log(`\tLabels: ${row.ML_LABELS.replaceAll(argv.delimiter, ', ')}`);
           }
         }
         if (argv.debug) {
