@@ -2,7 +2,7 @@ const createReadStream = require('fs').createReadStream
 const fs = require('fs');
 let path = require('path');
 const {writeToPath} = require('@fast-csv/format');
-const {readCache, writeCache} = require("../utils.js");
+const {cacheImage, readCache, writeCache} = require("../utils.js");
 const vision = require('@google-cloud/vision');
 const ComputerVisionClient = require('@azure/cognitiveservices-computervision').ComputerVisionClient;
 const ApiKeyCredentials = require('@azure/ms-rest-js').ApiKeyCredentials;
@@ -35,7 +35,9 @@ exports.handler = async function (argv) {
   const imageTypes = [
     '.jpeg',
     '.jpg',
-    '.png'
+    '.png',
+    '.tif',
+    '.tiff'
   ];
 
   if (argv.debug) {
@@ -80,9 +82,10 @@ exports.handler = async function (argv) {
           if (argv.verbose) {
             console.log(path.join(argv.path, file).padEnd(50) + "Loading labels from API");
           }
+          let cachedImage = await cacheImage(argv.cacheFolder, argv.path, file, argv.force);
           if (argv.vendor === 'microsoft') {
             results = (await computerVisionClient.describeImageInStream(
-              () => createReadStream(path.join(argv.path, file))
+              () => createReadStream(cachedImage)
             ));
           }
           else {
@@ -102,13 +105,13 @@ exports.handler = async function (argv) {
           results.tags.forEach(label => row.ML_LABELS += (row.ML_LABELS ? argv.delimiter : '') + label);
           if (argv.verbose) {
             console.log(`\tCaption: ${results.captions[0].text} (${results.captions[0].confidence.toFixed(2)} confidence)`);
-            console.log(`\tLabels: ${row.ML_LABELS}`);
+            console.log(`\tLabels: ${row.ML_LABELS.replaceAll(argv.delimiter, ', ')}`);
           }
         }
         else {
           results.labelAnnotations.forEach(label => row.ML_LABELS += (row.ML_LABELS ? argv.delimiter : '') + label.description);
           if (argv.verbose) {
-            console.log(`\tLabels: ${row.ML_LABELS.replaceAll('\t', ',')}`);
+            console.log(`\tLabels: ${row.ML_LABELS.replaceAll(argv.delimiter, ', ')}`);
           }
         }
         if (argv.debug) {
