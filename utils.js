@@ -1,6 +1,30 @@
 const fs = require('fs');
 const path = require('path');
 const sanitize = require('sanitize-filename');
+const sharp = require('sharp');
+
+async function cacheImage(cache,cachePath, fileName, force = false) {
+  const cacheDetails = getCacheDetails(cache, cachePath, fileName, false);
+  
+  console.log(cacheDetails);
+  let cachedImageExists = false;
+  try {
+    fs.accessSync(path.join(cacheDetails.cacheFilePath, fileName));
+    cachedImageExists = true;
+  }
+  catch (error) {
+    cachedImageExists = false;
+  }
+
+  if (force || !cachedImageExists) {
+    // use cache
+    return path.join(cacheDetails.cacheFilePath, fileName);
+  }
+  else {
+    let metadata = await sharp(path.join(cachePath, fileName)).metadata();
+    console.log(metadata); 
+  }
+}
 
 function cleanPath(filePath) {
   return sanitize(filePath).replaceAll(/[\&\.\?\,]/ig, '_');
@@ -14,7 +38,7 @@ function getCacheDetails(cache, cachePath, key, optimize) {
   const _keyPath = path.dirname(_keyFullPath);
   cacheDetails.keyFilename = path.basename(_keyFullPath) + '.json';
   cacheDetails.cacheFilePath = path.resolve(__dirname, cache, _cachePath, path.join(_keyPath));
-
+  
   return cacheDetails;
 }
 
@@ -44,6 +68,7 @@ async function writeCache(cache, cachePath, key, payload, optimize = true, prett
 }
 
 module.exports = {
+  cacheImage,
   readCache,
   writeCache
 }
