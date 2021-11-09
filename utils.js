@@ -6,7 +6,7 @@ const sharp = require('sharp');
 async function cacheImage(cache,cachePath, fileName, force = false) {
   const cacheDetails = getCacheDetails(cache, cachePath, fileName, false);
   
-  console.log(cacheDetails);
+  //console.log(cacheDetails);
   let cachedImageExists = false;
   try {
     fs.accessSync(path.join(cacheDetails.cacheFilePath, fileName));
@@ -16,13 +16,23 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
     cachedImageExists = false;
   }
 
-  if (!force || cachedImageExists) {
+  if (!force && cachedImageExists) {
     // use cache
     return path.join(cacheDetails.cacheFilePath, fileName);
   }
   else {
-    let metadata = await sharp(path.join(cachePath, fileName)).metadata();
-    console.log(metadata); 
+    try {
+      let metadata = await sharp(path.join(cachePath, fileName)).metadata();
+      // @TODO: write jpg with correct filename
+      await sharp(path.join(cachePath, fileName))
+        .resize({width: 640, height: 480, fit: 'inside'})
+        .toFormat('jpeg')
+        .toFile(path.join(cacheDetails.cacheFilePath, fileName));
+      return path.join(cacheDetails.cacheFilePath, fileName);
+    }
+    catch (error) {
+      process.exit(1);
+    }
   }
 }
 
