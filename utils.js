@@ -29,8 +29,8 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
       fs.mkdirSync(cacheDetails.cacheFilePath,{recursive: true});
       let metadata = await sharp(path.join(cachePath, fileName)).metadata();
       await sharp(path.join(cachePath, fileName))
-        .resize({width: 640, height: 480, fit: 'inside'})
-        .jpeg({quality: 90,})
+        .resize({width: 640, height: 480, fit: 'outside'})
+        .jpeg({quality: 90})
         .toFile(cachedImagePath);
       return cachedImagePath;
     }
