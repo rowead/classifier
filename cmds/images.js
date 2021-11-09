@@ -72,7 +72,6 @@ exports.handler = async function (argv) {
       let results = {};
       if (imageTypes.includes(path.extname(file))) {
         let cached = false;
-        let cachedImage = await cacheImage(argv.cacheFolder, argv.path, file, argv.force);
         if (argv.force !== true && (cached = await readCache(argv.cacheFolder, argv.path, file + '-' + argv.vendor, false))) {
           results = await JSON.parse(cached);
           if (argv.verbose) {
@@ -83,9 +82,10 @@ exports.handler = async function (argv) {
           if (argv.verbose) {
             console.log(path.join(argv.path, file).padEnd(50) + "Loading labels from API");
           }
+          let cachedImage = await cacheImage(argv.cacheFolder, argv.path, file, argv.force);
           if (argv.vendor === 'microsoft') {
             results = (await computerVisionClient.describeImageInStream(
-              () => createReadStream(path.join(argv.path, file))
+              () => createReadStream(cachedImage)
             ));
           }
           else {
