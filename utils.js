@@ -41,7 +41,7 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
 }
 
 function cleanPath(filePath, fixCase = false) {
-  filePath = sanitize(filePath).replaceAll(/[\&\.\?\,]/ig, '_');
+  filePath = sanitize(filePath).replaceAll(/[\&\.\?\,\s]/ig, '_');
   if (fixCase) {
     return filePath.toLowerCase();
   }

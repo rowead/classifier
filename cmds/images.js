@@ -6,6 +6,7 @@ const {cacheImage, readCache, writeCache} = require("../utils.js");
 const vision = require('@google-cloud/vision');
 const ComputerVisionClient = require('@azure/cognitiveservices-computervision').ComputerVisionClient;
 const ApiKeyCredentials = require('@azure/ms-rest-js').ApiKeyCredentials;
+const homeDir = require('os').homedir();
 
 exports.command = 'images'
 exports.desc = 'Classify images within a folder'
@@ -22,6 +23,11 @@ exports.builder = {
   'microsoft-key': {
     alias: 'ms-key',
     description: 'Microsoft API key, best to use env cariabel',
+  },
+  'output-file': {
+    alias: 'out',
+    description: "Filename for CSV, will be written to user's home directory",
+    default: 'labels.csv'
   },
   vendor: {
     description: 'Cloud vendor API to use',
@@ -118,6 +124,9 @@ exports.handler = async function (argv) {
         }
         console.log(`${file}:`.padEnd(50) + `Processed`);
         rows.push(row);
+        // console.log('starting sleep cycle');
+        // await sleep(5000);
+        // console.log('waking back up');
       }
       else {
         if (argv.verbose) {
@@ -125,13 +134,13 @@ exports.handler = async function (argv) {
         }
       }
     }
-    writeToPath(path.resolve(argv.path, 'labels.csv'), rows, {
+    writeToPath(path.resolve(homeDir, argv.outputFile), rows, {
       headers: true,
       delimiter: argv.delimiter
     })
     .on('error', err => console.error(err))
     .on('finish', () => console.log('Done writing.'));
-    console.log('Writing output to: ' + path.resolve(argv.path, 'labels.csv'));
+    console.log('Writing output to: ' + path.resolve(homeDir, argv.outputFile));
   } catch (error) {
     console.log(error);
   }
