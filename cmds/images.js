@@ -124,10 +124,12 @@ exports.handler = async function (argv) {
         }
         console.log(`${file}:`.padEnd(50) + `Processed`);
         rows.push(row);
+        // console.log('starting sleep cycle');
+        // await sleep(5000);
+        // console.log('waking back up');
       }
       else {
         if (argv.verbose) {
-          
           console.log(`${file}`.padEnd(50) + `Skipped`);
         }
       }
