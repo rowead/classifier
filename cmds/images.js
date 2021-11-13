@@ -2,7 +2,7 @@ const createReadStream = require('fs').createReadStream
 const fs = require('fs');
 let path = require('path');
 const {writeToPath} = require('@fast-csv/format');
-const {cacheImage, readCache, writeCache} = require("../utils.js");
+const {cacheImage, checkFileWriteable,  readCache, writeCache} = require("../utils.js");
 const vision = require('@google-cloud/vision');
 const ComputerVisionClient = require('@azure/cognitiveservices-computervision').ComputerVisionClient;
 const ApiKeyCredentials = require('@azure/ms-rest-js').ApiKeyCredentials;
@@ -51,6 +51,13 @@ exports.handler = async function (argv) {
   }
 
   try {
+    // Abort early if output is not writeable or aborted by user choice
+    let overwrite = await checkFileWriteable(path.resolve(homeDir, argv.outputFile));
+    if (!overwrite) {
+      console.log("Aborting");
+      process.exit(1);
+    }
+
     let rows = [];
     const files = fs.readdirSync(argv.path);
 

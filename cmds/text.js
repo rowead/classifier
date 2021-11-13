@@ -1,9 +1,10 @@
 const csv = require('@fast-csv/parse');
 const fs = require("fs");
+const homeDir = require('os').homedir();
 const language = require('@google-cloud/language');
 const path = require("path");
 const {DataStream} = require("scramjet");
-const {readCache, writeCache} = require('../utils.js');
+const {checkFileWriteable, readCache, writeCache} = require('../utils.js');
 const {writeToPath} = require("@fast-csv/format");
 
 exports.command = 'text'
@@ -51,10 +52,18 @@ const mlHeaders = mlFields.map(value => value = mlHeaderPrefix + value);
 
 exports.handler = function (argv) {
   (async () => {
+    let outputFile = path.resolve(homeDir, path.basename(argv.csv, path.extname(argv.csv)) + '-enriched.csv');
     if (argv.debug) {
       console.log(argv);
     }
     try {
+      // Abort early if output is not writeable or no overwrite is chosen
+      let overwrite = await checkFileWriteable(outputFile);
+      if (!overwrite) {
+        console.log("Aborting");
+        process.exit(1);
+      }
+
       // Creates a client
       const client = new language.LanguageServiceClient({
         keyFilename: path.resolve(path.join(__dirname, '../keys', argv.key))
@@ -126,7 +135,7 @@ exports.handler = function (argv) {
       })
       .whenEnd()
       .then(() => {
-        writeToPath(path.resolve(path.basename(argv.csv, path.extname(argv.csv)) + '-enriched.csv'), rows, {
+        writeToPath(outputFile , rows, {
           headers: csvStream.headerTransformer.headers.concat(mlHeaders),
           delimiter: argv.delimiter
         })
