@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { prompt } = require('enquirer');
 const sanitize = require('sanitize-filename');
 const sharp = require('sharp');
 
@@ -27,7 +28,7 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
   else {
     try {
       fs.mkdirSync(cacheDetails.cacheFilePath,{recursive: true});
-      let metadata = await sharp(path.join(cachePath, fileName)).metadata();
+      // let metadata = await sharp(path.join(cachePath, fileName)).metadata();
       await sharp(path.join(cachePath, fileName))
         .resize({width: 640, height: 480, fit: 'outside'})
         .jpeg({quality: 90})
@@ -36,6 +37,32 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
     }
     catch (error) {
       process.exit(1);
+    }
+  }
+}
+
+async function checkFileWriteable(file) {
+  try {
+    fs.accessSync(file, fs.constants.F_OK | fs.constants.W_OK);
+    let overwrite =  await prompt({
+      type: 'confirm',
+      name: 'answer',
+      message: `Are you sure you want to overwrite ${file} ?`,
+      format: function(value) {
+        return this.isTrue(value) ? 'yes' : 'no';
+      }
+    });
+    return overwrite.answer;
+  }
+  catch (error) {
+    // File does not exist
+    if (error.code === 'ENOENT') {
+      return true;
+    }
+    // File is not writeable
+    if (error.code === 'EACCES') {
+      console.log(`Error writing to file ${file} Permission Denied`);
+      return false;
     }
   }
 }
@@ -67,7 +94,7 @@ async function readCache(cache, cachePath, key, optimize = true) {
     return fs.readFileSync(cacheDetails.cacheFullPath);
   }
   catch (error) {
-    console.error(`Could not read cache file ${cacheDetails.cacheFullPath}`);
+    // not really an error we care about here
   }
   return false;
 }
@@ -88,6 +115,7 @@ async function writeCache(cache, cachePath, key, payload, optimize = true, prett
 
 module.exports = {
   cacheImage,
+  checkFileWriteable,
   readCache,
   writeCache
 }
