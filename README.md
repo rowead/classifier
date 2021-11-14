@@ -17,7 +17,7 @@ node.exe classify images --path="C:/path/to/images/with spaces in path"
 ```
 Images need to be converted to jpg, jpeg or png (file extensions are matched to those strings).
 
-**Do not run on large images, google expects reasonably small images ~640x480 for label detection see: https://cloud.google.com/vision/docs/supported-files**
+**Images will be cached locally and resized for sending to the cloud services, google expects reasonably small images ~640x480 for label detection see: https://cloud.google.com/vision/docs/supported-files**
 
 Named entity extraction on a filed in a csv. Extract Persons, Organisations, Landmarks, Events etc. from a plain text field. Writes extra columns to [filename]-enriched.csv
 ```shell
