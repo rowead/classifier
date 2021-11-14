@@ -41,6 +41,25 @@ async function cacheImage(cache,cachePath, fileName, force = false) {
   }
 }
 
+async function checkFileReadable(file) {
+  try {
+    fs.accessSync(file, fs.constants.F_OK | fs.constants.R_OK);
+  }
+  catch (error) {
+    // File does not exist
+    if (error.code === 'ENOENT') {
+      console.log(`${file} does not exist.`);
+      return false;
+    }
+    // File is not writeable
+    if (error.code === 'EACCES') {
+      console.log(`${file} is not readable, Permission Denied`);
+      return false;
+    }
+  }
+  return true;
+}
+
 async function checkFileWriteable(file) {
   try {
     fs.accessSync(file, fs.constants.F_OK | fs.constants.W_OK);
@@ -115,6 +134,7 @@ async function writeCache(cache, cachePath, key, payload, optimize = true, prett
 
 module.exports = {
   cacheImage,
+  checkFileReadable,
   checkFileWriteable,
   readCache,
   writeCache

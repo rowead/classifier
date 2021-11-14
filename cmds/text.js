@@ -4,7 +4,7 @@ const homeDir = require('os').homedir();
 const language = require('@google-cloud/language');
 const path = require("path");
 const {DataStream} = require("scramjet");
-const {checkFileWriteable, readCache, writeCache} = require('../utils.js');
+const {checkFileReadable, checkFileWriteable, readCache, writeCache} = require('../utils.js');
 const {writeToPath} = require("@fast-csv/format");
 
 exports.command = 'text'
@@ -61,6 +61,11 @@ exports.handler = function (argv) {
       let overwrite = await checkFileWriteable(outputFile);
       if (!overwrite) {
         console.log("Aborting");
+        process.exit(1);
+      }
+
+      if (!(await checkFileReadable(path.resolve(path.join(__dirname, '../keys', argv.key))))) {
+        console.error('Error reading key file, Aborting.');
         process.exit(1);
       }
 

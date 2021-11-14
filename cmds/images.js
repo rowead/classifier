@@ -2,7 +2,7 @@ const createReadStream = require('fs').createReadStream
 const fs = require('fs');
 let path = require('path');
 const {writeToPath} = require('@fast-csv/format');
-const {cacheImage, checkFileWriteable,  readCache, writeCache} = require("../utils.js");
+const {cacheImage, checkFileWriteable,  readCache, writeCache, checkFileReadable} = require("../utils.js");
 const vision = require('@google-cloud/vision');
 const ComputerVisionClient = require('@azure/cognitiveservices-computervision').ComputerVisionClient;
 const ApiKeyCredentials = require('@azure/ms-rest-js').ApiKeyCredentials;
@@ -63,6 +63,13 @@ exports.handler = async function (argv) {
 
     if (argv.debug) {
       console.log(files);
+    }
+
+    if (argv.vendor === 'google') {
+      if (!(await checkFileReadable(path.resolve(path.join(__dirname, '../keys', argv.key))))) {
+        console.error('Error reading key file, Aborting.');
+        process.exit(1);
+      }
     }
 
     // Google
