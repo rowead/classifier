@@ -43,4 +43,3 @@ The same command for google is
 ```bash
 node.exe classify images --path="C:/path/to/images/with spaces in path" --vendor=google
 ```
-Any problems contact andrew.rowe@museum.wa.gov.au or lodge and issue (https://code.wam.fyi/andrewr/image-classifier/-/issues)
