@@ -1,4 +1,4 @@
-## WAM Classifier
+## Classifier
 Classify (label) a folder full of images or enrich a csv with Entity Extraction.
 
 Writes to a csv and caches results to disk **PLEASE take a copy of your image folder and process locally**.
